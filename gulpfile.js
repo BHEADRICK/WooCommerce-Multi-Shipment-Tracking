@@ -22,12 +22,8 @@ gulp.task('deploy', function () {
   }
   return gulp.src([ '**' ,'!.*', '!composer.json', '!package.json', '!gulpfile.js', '!node_modules/**' ])
     .pipe(zip(dir+'.zip'))
-    .pipe(gulp.dest('../')).pipe(s3({
-            Bucket: 'bucket-name', //  Required
-        }, {
-            // S3 Construcor Options, ie:
-            maxRetries: 5
-        }));
+    .pipe(gulp.dest('../'));
+
 });
 
 gulp.task('rename', function(){

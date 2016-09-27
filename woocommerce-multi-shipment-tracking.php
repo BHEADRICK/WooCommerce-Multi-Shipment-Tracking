@@ -2,10 +2,12 @@
 /*
 Plugin Name: WooCommerce Multi-Shipment Tracking
 Plugin URI:
-Description:
+Description: Adds the ability to include multiple tracking numbers on the order as well as multiple shipment photos
+to be included with the Order Complete Email
+
 Version: 1.0.0
-Author: Author Name
-Author URI: https://authorurl.com
+Author: Bryan Headrick
+Author URI: https://catmanstudios.com
  License: GNU General Public License v3.0
  License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -91,7 +93,7 @@ class WooCommerceMultiShipmentTracking {
         $group_field_id = $cmb->add_field( array(
             'id'          => '_packages',
             'type'        => 'group',
-            'description' => __( 'Generates reusable form entries', 'cmb2' ),
+            'description' => __( 'List of Packages for order', 'cmb2' ),
             // 'repeatable'  => false, // use false if you want non-repeatable group
             'options'     => array(
                 'group_title'   => __( 'Package {#}', 'cmb2' ), // since version 1.1.4, {#} gets replaced by row number
