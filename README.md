@@ -4,7 +4,7 @@ WooCommerce Multi-Shipment Tracking
 
 ##Requirements
 
-WooCommerce, CMB2, and an account with aftership. 
+WooCommerce, CMB2
 
 ##Installation
 
@@ -98,7 +98,3 @@ Photo <br></a></td>
 </tr>
 </tbody>
 </table>
-
-##Todo
-
-Still need to add integration with aftership.
