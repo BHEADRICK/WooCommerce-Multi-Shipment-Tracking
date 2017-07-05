@@ -103,7 +103,7 @@ class WooCommerceMultiShipmentTracking {
 
 	public function email_content( $order, $sent_to_admin, $plain_text, $email ){
 
-      $this->order_tracking_details($order-get_id(), true);
+      $this->order_tracking_details($order->get_id(), true);
     }
 
     public function order_complete_action($actions){
