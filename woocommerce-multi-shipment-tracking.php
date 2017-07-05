@@ -40,6 +40,7 @@ class WooCommerceMultiShipmentTracking {
         add_action('woocommerce_email_order_meta', array($this, 'email_content'), 10, 4);
         add_action( 'woocommerce_order_actions', array( $this, 'order_complete_action' ) );
         add_action( 'woocommerce_order_action_pw_order_shipped', array( $this, 'process_order_shipped' ) );
+        add_action('woocommerce_view_order', [$this,'order_tracking_details']);
 
 	}
 
@@ -64,9 +65,8 @@ class WooCommerceMultiShipmentTracking {
         return str_replace('[tracking_no]', $tracking, $url);
     }
 
-	public function email_content( $order, $sent_to_admin, $plain_text, $email ){
-
-        $tracking = get_post_meta($order->get_id(), '_packages', true);
+    public function order_tracking_details($order_id, $email = false){
+        $tracking = get_post_meta($order_id, '_packages', true);
 
         if($tracking && is_array($tracking)):
 
@@ -83,7 +83,7 @@ class WooCommerceMultiShipmentTracking {
 		<td>
 		Package #'.($ix+1).' of '.count($tracking) .'
 </td><td>'. $package['tracking'].' (' . $this->get_carrier_name($package['carrier']) . ')</td>
-<td><a href="'.$url. '">'.$url .' </a></td>
+<td><a target="_blank" href="'.$url. '">'. ($email?$url:'Track') .' </a></td>
 <td>' ;
                     if(isset($package['image']) && count($package['image'])>0){
                         foreach($package['image'] as $ix=>$image){
@@ -99,6 +99,11 @@ class WooCommerceMultiShipmentTracking {
             echo '</table>';
 
         endif;
+    }
+
+	public function email_content( $order, $sent_to_admin, $plain_text, $email ){
+
+      $this->order_tracking_details($order-get_id(), true);
     }
 
     public function order_complete_action($actions){
