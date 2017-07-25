@@ -75,7 +75,7 @@ class WooCommerceMultiShipmentTracking {
 <table class="td" style="width: 100%; font-family: \'Helvetica Neue\', Helvetica, Roboto, Arial, sans-serif; color: #737373; border: 1px solid #e4e4e4;">';
             if(count($tracking)>0){
                 echo '
-	<th>Package</th><th>Tracking#</th><th>Track</th><th></th>
+	<th>Package</th><th>Tracking#</th><th>Track</th><th>Description</th>
 ';
                 foreach($tracking  as $ix=>$package){
                     $url = $this->get_carrier_url($package['carrier'], $package['tracking']);
@@ -90,7 +90,12 @@ class WooCommerceMultiShipmentTracking {
                             echo '<a href="' . $image . '"> Photo <br>';
                         }
                     }
-                    echo '</td></tr>';
+                    echo  isset($package['desc'])?$package['desc']:'';
+                    echo '</td>';
+
+
+                    
+                    echo '</tr>';
                 }
             }
 
@@ -244,6 +249,12 @@ class WooCommerceMultiShipmentTracking {
             'type' => 'file_list',
             'preview_size'=>['100','100']
         ) );
+
+        $cmb->add_group_field($group_field_id, [
+            'name'=>'Package Description',
+            'id'=>'desc',
+            'type'=>'text'
+        ]);
 
     }
 
