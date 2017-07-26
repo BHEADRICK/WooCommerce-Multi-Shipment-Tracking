@@ -74,9 +74,7 @@ class WooCommerceMultiShipmentTracking {
             echo '<h3>Tracking</h3>
 <table class="td" style="width: 100%; font-family: \'Helvetica Neue\', Helvetica, Roboto, Arial, sans-serif; color: #737373; border: 1px solid #e4e4e4;">';
             if(count($tracking)>0){
-                echo '
-	<th>Package</th><th>Tracking#</th><th>Track</th><th>Description</th>
-';
+                echo '<tr></tr><th>Package</th><th>Tracking#</th><th>Track</th><th>'  .  ((isset($tracking[0]['desc']) && !empty($tracking[0]['desc']))? 'Description':'') . '</th></tr>';
                 foreach($tracking  as $ix=>$package){
                     $url = $this->get_carrier_url($package['carrier'], $package['tracking']);
                     echo '<tr>
