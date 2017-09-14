@@ -72,28 +72,22 @@ class WooCommerceMultiShipmentTracking {
 
 
             echo '<h3>Tracking</h3>
-<table class="td" style="width: 100%; font-family: \'Helvetica Neue\', Helvetica, Roboto, Arial, sans-serif; color: #737373; border: 1px solid #e4e4e4;">';
+<table id="tracking" class="td" style="width: 100%; font-family: \'Helvetica Neue\', Helvetica, Roboto, Arial, sans-serif; color: #737373; border: 1px solid #e4e4e4;">';
             if(count($tracking)>0){
-                echo '<tr></tr><th>Package</th><th>Tracking#</th><th>Track</th><th>'  .  ((isset($tracking[0]['desc']) && !empty($tracking[0]['desc']))? 'Description':'') . '</th></tr>';
+                echo '<tr></tr><th>Package</th><th class="tracking">Tracking#</th><th class="track-link">Track</th></tr>';
                 foreach($tracking  as $ix=>$package){
                     $url = $this->get_carrier_url($package['carrier'], $package['tracking']);
                     echo '<tr>
 		<td>
 		Package #'.($ix+1).' of '.count($tracking) .'
-</td><td>'. $package['tracking'].' (' . $this->get_carrier_name($package['carrier']) . ')</td>
-<td><a target="_blank" href="'.$url. '">'. ($email?$url:'Track') .' </a></td>
-<td>' ;
-                    if(isset($package['image']) && count($package['image'])>0){
-                        foreach($package['image'] as $ix=>$image){
-                            echo '<a href="' . $image . '"> Photo <br>';
-                        }
+</td><td class="tracking">'. $package['tracking'].' (' . $this->get_carrier_name($package['carrier']) . ')</td>
+<td class="tracking-link"><a target="_blank" href="'.$url. '">'. ($email?$url:'Track') .' </a></td>';
+
+echo '</tr>';
+
+                    if(isset($package['desc'])){
+                        echo '<tr ><td colspan="3">'.$package['desc'].'</td></tr>';
                     }
-                    echo  isset($package['desc'])?$package['desc']:'';
-                    echo '</td>';
-
-
-                    
-                    echo '</tr>';
                 }
             }
 
