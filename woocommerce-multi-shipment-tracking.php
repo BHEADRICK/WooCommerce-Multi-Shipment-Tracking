@@ -275,10 +275,7 @@ echo '</tr>';
 		if ( is_admin() ) {
 			$this->load_file( self::slug . '-admin-script', '/js/admin.js', true );
 			$this->load_file( self::slug . '-admin-style', '/css/admin.css' );
-		} else {
-			$this->load_file( self::slug . '-script', '/js/script.js', true );
-			$this->load_file( self::slug . '-style', '/css/style.css' );
-		} // end if/else
+		} 
 	} // end register_scripts_and_styles
 
 	/**
