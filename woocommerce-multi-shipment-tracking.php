@@ -95,7 +95,6 @@ echo '</tr>';
 
             echo '</table>';
 
-            echo '<p><small>*If the tracking link is not working, your tracking information may need additional time to upload into the carrier\'s system. Please check back or retry tomorrow</small><p/>';
         endif;
     }
 
@@ -121,7 +120,7 @@ echo '</tr>';
         if ( ! empty( $mails ) ) {
             foreach ( $mails as $mail ) {
                 if ( $mail->id == $email_to_send ) {
-                    $mail->trigger( $order->get_id(), $order );
+                    $mail->trigger( $order->get_id() );
                     $order->add_order_note( sprintf( __( '%s email notification manually sent.', 'woocommerce' ), $mail->title ), false, true );
                 }
             }
