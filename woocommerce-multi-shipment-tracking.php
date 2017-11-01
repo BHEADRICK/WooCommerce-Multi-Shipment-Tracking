@@ -27,6 +27,7 @@ class WooCommerceMultiShipmentTracking {
 	const name = 'WooCommerce Multi-Shipment Tracking';
 	const slug = 'woocommerce-multi-shipment-tracking';
 
+	var $carriers;
 	/**
 	 * Constructor
 	 */
@@ -36,7 +37,96 @@ class WooCommerceMultiShipmentTracking {
 
 		//Hook up to the init action
 		add_action( 'init', array( $this, 'init_woocommerce_multi_shipment_tracking' ) );
+        add_action('woocommerce_email_order_meta', array($this, 'email_content'), 10, 4);
+        add_action( 'woocommerce_order_actions', array( $this, 'order_complete_action' ) );
+        add_action( 'woocommerce_order_action_pw_order_shipped', array( $this, 'process_order_shipped' ) );
+        add_action('woocommerce_view_order', [$this,'order_tracking_details']);
+
 	}
+
+	private function get_carrier_titles(){
+
+	    $carrier_titles = [''=>'Select Carrier'];
+
+	    foreach($this->carriers as $key=>$carrier){
+	        $carrier_titles[$key] = $carrier['title'];
+        }
+        return $carrier_titles;
+
+    }
+
+    private function get_carrier_name($carrier_type){
+	    return $this->carriers[$carrier_type]['title'];
+    }
+
+    private function get_carrier_url($carrier_type, $tracking){
+        $url = $this->carriers[$carrier_type]['url'];
+
+        return str_replace('[tracking_no]', $tracking, $url);
+    }
+
+    public function order_tracking_details($order_id, $email = false){
+        $tracking = get_post_meta($order_id, '_packages', true);
+
+        if($tracking && is_array($tracking)):
+
+
+            echo '<h3>Tracking</h3>
+<table id="tracking" class="td" style="width: 100%; font-family: \'Helvetica Neue\', Helvetica, Roboto, Arial, sans-serif; color: #737373; border: 1px solid #e4e4e4;">';
+            if(count($tracking)>0){
+                echo '<tr></tr><th>Package</th><th class="tracking">Tracking#</th><th class="track-link">Track</th></tr>';
+                foreach($tracking  as $ix=>$package){
+                    $url = $this->get_carrier_url($package['carrier'], $package['tracking']);
+                    echo '<tr>
+		<td>
+		Package #'.($ix+1).' of '.count($tracking) .'
+</td><td class="tracking">'. $package['tracking'].' (' . $this->get_carrier_name($package['carrier']) . ')</td>
+<td class="tracking-link"><a target="_blank" href="'.$url. '">'. ($email?$url:'Track') .' </a></td>';
+
+echo '</tr>';
+
+                    if(isset($package['desc'])){
+                        echo '<tr ><td colspan="3">'.$package['desc'].'</td></tr>';
+                    }
+                }
+            }
+
+
+
+            echo '</table>';
+
+            echo '<p><small>*If the tracking link is not working, your tracking information may need additional time to upload into the carrier\'s system. Please check back or retry tomorrow</small><p/>';
+        endif;
+    }
+
+	public function email_content( $order, $sent_to_admin, $plain_text, $email ){
+
+      $this->order_tracking_details($order->get_id(), true);
+    }
+
+    public function order_complete_action($actions){
+        $actions['pw_order_shipped'] = __( 'Mark order as Shipped (Completed)', self::slug );
+        return $actions;
+
+    }
+    public function process_order_shipped($order){
+        $order->update_status('wc-completed', 'Order Shipped');
+        do_action( 'woocommerce_order_action_send_email_customer_invoice' , $order );
+        $mailer = WC()->mailer();
+
+        $email_to_send = 'customer_completed_order';
+
+        $mails = $mailer->get_emails();
+
+        if ( ! empty( $mails ) ) {
+            foreach ( $mails as $mail ) {
+                if ( $mail->id == $email_to_send ) {
+                    $mail->trigger( $order->get_id(), $order );
+                    $order->add_order_note( sprintf( __( '%s email notification manually sent.', 'woocommerce' ), $mail->title ), false, true );
+                }
+            }
+        }
+    }
 
 	/**
 	 * Runs when the plugin is activated
@@ -47,13 +137,40 @@ class WooCommerceMultiShipmentTracking {
 	 * Runs when the plugin is initialized
 	 */
 	function init_woocommerce_multi_shipment_tracking() {
+
+        $carriers =  ['ups'=>[
+            'title'=>'UPS',
+            'url'=> 'http://wwwapps.ups.com/WebTracking/track?track=yes&trackNums=[tracking_no]'],
+            'fedex'=>['url'=>'http://www.fedex.com/Tracking?tracknumbers=[tracking_no]',
+                'title'=>'Fedex'
+            ],
+            'usps'=>
+                ['url'=>'http://trkcnfrm1.smi.usps.com/PTSInternetWeb/InterLabelInquiry.do?origTrackNum=[tracking_no]',
+                    'title'=>'US Mail'],
+            'averitt'=>[
+                'url'=>'https://www.averittexpress.com/trackLTLById.avrt?serviceType=LTL&resultsPageTitle=LTL+Tracking+by+PRO+and+BOL&trackPro=[tracking_no]',
+                'title'=>'Averitt Express'
+            ],
+            'xpo'=>[
+                'url'=>'http://www.xpo.com/tracking/[tracking_no]/0/CON_WAY',
+                'title'=>'XPO'
+            ],
+            'fedex_small'=>[
+                'url'=>'https://www.fedex.com/apps/fedextrack/?tracknumbers=[tracking_no]&cntry_code=us',
+                'title'=>'Fedex Small Parcel'
+            ],
+            'saia'=>[
+                'url'=>'http://www.saia.com/Tracing/AjaxProstatusByPro.aspx?&PRONum1=[tracking_no]',
+                'title'=>'Saia'
+            ]
+        ];
+            $this->carriers = apply_filters('multi_shipment_tracking_carriers',$carriers, 10);
 		// Setup localization
 		load_plugin_textdomain( self::slug, false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
 		// Load JavaScript and stylesheets
 		$this->register_scripts_and_styles();
 
-		// Register the shortcode [my_shortcode]
-		add_shortcode( 'my_shortcode', array( $this, 'render_shortcode' ) );
+
 
 		if ( is_admin() ) {
 			//this will run when in the WordPress admin
@@ -68,10 +185,12 @@ class WooCommerceMultiShipmentTracking {
 		 * http://codex.wordpress.org/Plugin_API#Hooks.2C_Actions_and_Filters
 		 */
 		add_action( 'cmb2_admin_init', array( $this, 'cmb2_box' ) );
-//		add_filter( 'your_filter_here', array( $this, 'filter_callback_method_name' ) );
+
 
 
 	}
+
+
 
 	public function cmb2_box(){
 	    $prefix = 'multiship_';
@@ -108,17 +227,13 @@ class WooCommerceMultiShipmentTracking {
             'name' => 'Tracking #',
             'id'   => 'tracking',
             'type' => 'text',
-//             'repeatable' => true, // Repeatable fields are supported w/in repeatable groups (for most types)
+
         ) );   $cmb->add_group_field( $group_field_id, array(
             'name' => 'Carrier',
             'id'   => 'carrier',
             'type' => 'select',
-            'options'=>[
-                'ups'=>'UPS',
-                'fedex'=>'Fedex',
-                'usps'=>'US Mail'
-            ]
-//             'repeatable' => true, // Repeatable fields are supported w/in repeatable groups (for most types)
+            'options'=>$this->get_carrier_titles()
+
         ) );
 
         $cmb->add_group_field( $group_field_id, array(
@@ -127,6 +242,12 @@ class WooCommerceMultiShipmentTracking {
             'type' => 'file_list',
             'preview_size'=>['100','100']
         ) );
+
+        $cmb->add_group_field($group_field_id, [
+            'name'=>'Package Description',
+            'id'=>'desc',
+            'type'=>'text'
+        ]);
 
     }
 

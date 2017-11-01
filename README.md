@@ -4,7 +4,7 @@ WooCommerce Multi-Shipment Tracking
 
 ##Requirements
 
-WooCommerce, CMB2, and an account with aftership. 
+WooCommerce, CMB2
 
 ##Installation
 
@@ -13,47 +13,7 @@ WooCommerce, CMB2, and an account with aftership.
 
 ##Usage
 
-Enter tracking info in order edit screen, then execute "order Complete" Order action.
-
-Example of what to add to order complete order template:
-
-```php
-$tracking = get_post_meta($order->id, '_packages', true);
-
-if($tracking):
-
-	$urls = ['ups'=>'http://wwwapps.ups.com/WebTracking/track?track=yes&trackNums=',
-		'fedex'=>'http://www.fedex.com/Tracking?tracknumbers=',
-		'usps'=>'http://trkcnfrm1.smi.usps.com/PTSInternetWeb/InterLabelInquiry.do?origTrackNum='];
-    $carriers = ['ups'=>'UPS', 'fedex'=>'Fedex', 'usps'=>'US Mail'];
-echo '<h3>Tracking</h3>
-<table class="td" style="width: 100%; font-family: \'Helvetica Neue\', Helvetica, Roboto, Arial, sans-serif; color: #737373; border: 1px solid #e4e4e4;">';
-if(count($tracking)>0){
-echo '
-	<th>Package</th><th>Tracking#</th><th>Track</th><th>Photos</th>
-';
-	foreach($tracking  as $ix=>$package){
-		echo '<tr>
-		<td>
-		Package #'.($ix+1).' of '.count($tracking) .'
-</td><td>'. $package['tracking'].' (' . $carriers[$package['carrier']] . ')</td>
-<td><a href=""'.$urls[$package['carrier']]. $package['tracking']. '">'.$urls[$package['carrier']]. $package['tracking'].' </a></td>
-<td>' ;
-			if($package['image'] && count($package['image'])>0){
-				foreach($package['image'] as $ix=>$image){
-					echo '<a href="' . $image . '"> Photo <br>';
-				}
-			}
-echo '</td></tr>';
-	}
-}
-
-
-
-echo '</table>';
-
-	endif;
-```
+Tracking info is now added via hooks, and it will display in any email if tracking info is present. 
 
 ##Example Order Complete Email Excerpt
 
@@ -98,7 +58,3 @@ Photo <br></a></td>
 </tr>
 </tbody>
 </table>
-
-##Todo
-
-Still need to add integration with aftership.
